@@ -5,13 +5,17 @@ import gleam/string
 import gleam/time/calendar.{Date}
 
 pub fn calendar_date_to_json(date: calendar.Date) -> Json {
-  json.string(
-    int.to_string(date.year)
-    <> "-"
-    <> int.to_string(calendar.month_to_int(date.month))
-    <> "-"
-    <> int.to_string(date.day),
-  )
+  // I hate like really hate having to do this but i guess it's what i should do (padding the strings like this)
+  let month = case calendar.month_to_int(date.month) {
+    m if m < 10 -> "0" <> int.to_string(m)
+    m -> int.to_string(m)
+  }
+  let day = case date.day {
+    d if d < 10 -> "0" <> int.to_string(d)
+    d -> int.to_string(d)
+  }
+
+  json.string(int.to_string(date.year) <> "-" <> month <> "-" <> day)
 }
 
 pub fn json_to_calendar_date(j: Json) -> Option(calendar.Date) {

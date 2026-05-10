@@ -1,0 +1,42 @@
+# compose.yml
+
+name: hc-birthdays
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_PORT: ${PGPORT}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+    ports:
+      - ${PGPORT}:${PGPORT}
+    volumes:
+      - data:/var/lib/postgresql
+    healthcheck:
+      test: "pg_isready -U ${PGUSER} -d ${PGDATABASE}"
+      interval: 1s
+      timeout: 2s
+      retries: 10
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    command: >
+      -path /migrations
+      -database postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable
+      up
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  data:
+    name: hc-birthdays-dev-data
+
+networks:
+  default:
+    name: hc-birthdays-network

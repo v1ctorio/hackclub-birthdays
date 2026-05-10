@@ -1,6 +1,7 @@
 SELECT 
+    hca_id,
     slack_id,
-    birthday
+    birthdate
 FROM 
     members
-ORDER BY birthday DESC
+ORDER BY birthdate DESC

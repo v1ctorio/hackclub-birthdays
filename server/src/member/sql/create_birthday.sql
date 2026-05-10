@@ -1,8 +1,8 @@
-INSERT INTO members (hca_id, slack_id, birthday)
+INSERT INTO members (hca_id, slack_id, birthdate)
 VALUES ($1, $2, $3)
 RETURNING
     hca_id,
     slack_id,
-    birthday,
+    birthdate,
     created_at,
     updated_at

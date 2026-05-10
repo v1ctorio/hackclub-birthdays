@@ -15,6 +15,7 @@ target = "javascript"
 
 [dependencies]
 gleam_stdlib = ">= 1.0.0 and < 2.0.0"
+shared = { path = "../shared" }
 
 [dev_dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

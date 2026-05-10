@@ -17,7 +17,7 @@ import pog
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type AllMembersRow {
-  AllMembersRow(slack_id: String, birthday: Option(Date))
+  AllMembersRow(hca_id: String, slack_id: String, birthdate: Option(Date))
 }
 
 /// Runs the `all_members` query
@@ -30,20 +30,22 @@ pub fn all_members(
   db: pog.Connection,
 ) -> Result(pog.Returned(AllMembersRow), pog.QueryError) {
   let decoder = {
-    use slack_id <- decode.field(0, decode.string)
-    use birthday <- decode.field(
-      1,
+    use hca_id <- decode.field(0, decode.string)
+    use slack_id <- decode.field(1, decode.string)
+    use birthdate <- decode.field(
+      2,
       decode.optional(pog.calendar_date_decoder()),
     )
-    decode.success(AllMembersRow(slack_id:, birthday:))
+    decode.success(AllMembersRow(hca_id:, slack_id:, birthdate:))
   }
 
   "SELECT 
+    hca_id,
     slack_id,
-    birthday
+    birthdate
 FROM 
     members
-ORDER BY birthday DESC"
+ORDER BY birthdate DESC"
   |> pog.query
   |> pog.returning(decoder)
   |> pog.execute(db)
@@ -59,7 +61,7 @@ pub type CreateBirthdayRow {
   CreateBirthdayRow(
     hca_id: String,
     slack_id: String,
-    birthday: Option(Date),
+    birthdate: Option(Date),
     created_at: Timestamp,
     updated_at: Timestamp,
   )
@@ -80,7 +82,7 @@ pub fn create_birthday(
   let decoder = {
     use hca_id <- decode.field(0, decode.string)
     use slack_id <- decode.field(1, decode.string)
-    use birthday <- decode.field(
+    use birthdate <- decode.field(
       2,
       decode.optional(pog.calendar_date_decoder()),
     )
@@ -89,18 +91,18 @@ pub fn create_birthday(
     decode.success(CreateBirthdayRow(
       hca_id:,
       slack_id:,
-      birthday:,
+      birthdate:,
       created_at:,
       updated_at:,
     ))
   }
 
-  "INSERT INTO members (hca_id, slack_id, birthday)
+  "INSERT INTO members (hca_id, slack_id, birthdate)
 VALUES ($1, $2, $3)
 RETURNING
     hca_id,
     slack_id,
-    birthday,
+    birthdate,
     created_at,
     updated_at"
   |> pog.query
@@ -131,6 +133,48 @@ WHERE hca_id = $1"
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_member` query
+/// defined in `./src/member/sql/get_member.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetMemberRow {
+  GetMemberRow(hca_id: String, slack_id: String, birthdate: Option(Date))
+}
+
+/// Runs the `get_member` query
+/// defined in `./src/member/sql/get_member.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_member(
+  db: pog.Connection,
+  arg_1: String,
+) -> Result(pog.Returned(GetMemberRow), pog.QueryError) {
+  let decoder = {
+    use hca_id <- decode.field(0, decode.string)
+    use slack_id <- decode.field(1, decode.string)
+    use birthdate <- decode.field(
+      2,
+      decode.optional(pog.calendar_date_decoder()),
+    )
+    decode.success(GetMemberRow(hca_id:, slack_id:, birthdate:))
+  }
+
+  "SELECT
+  hca_id,
+  slack_id,
+  birthdate
+FROM members
+WHERE hca_id = $1"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `update_birthday` query
 /// defined in `./src/member/sql/update_birthday.sql`.
 ///
@@ -141,7 +185,7 @@ pub type UpdateBirthdayRow {
   UpdateBirthdayRow(
     hca_id: String,
     slack_id: String,
-    birthday: Option(Date),
+    birthdate: Option(Date),
     created_at: Timestamp,
     updated_at: Timestamp,
   )
@@ -161,7 +205,7 @@ pub fn update_birthday(
   let decoder = {
     use hca_id <- decode.field(0, decode.string)
     use slack_id <- decode.field(1, decode.string)
-    use birthday <- decode.field(
+    use birthdate <- decode.field(
       2,
       decode.optional(pog.calendar_date_decoder()),
     )
@@ -170,7 +214,7 @@ pub fn update_birthday(
     decode.success(UpdateBirthdayRow(
       hca_id:,
       slack_id:,
-      birthday:,
+      birthdate:,
       created_at:,
       updated_at:,
     ))
@@ -178,13 +222,13 @@ pub fn update_birthday(
 
   "UPDATE members
 SET 
-    birthday = $2,
+    birthdate = $2,
     updated_at = NOW()
 WHERE hca_id = $1
 RETURNING
     hca_id,
     slack_id,
-    birthday,
+    birthdate,
     created_at,
     updated_at"
   |> pog.query

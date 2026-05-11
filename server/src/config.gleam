@@ -1,6 +1,7 @@
 import envoy
 import gleam/int
 import gleam/result
+import mist
 
 pub type Config {
   Config(
@@ -12,6 +13,9 @@ pub type Config {
     secret_key_base: String,
     server_host: String,
     server_port: Int,
+    hca_client_id: String,
+    hca_client_secret: String,
+    hca_redirect_uri: String,
   )
 }
 
@@ -24,6 +28,9 @@ pub fn load() -> Config {
   let assert Ok(secret_key_base) = envoy.get("SECRET_KEY_BASE")
   let assert Ok(server_host) = envoy.get("SERVER_HOST")
   let assert Ok(server_port) = envoy.get("SERVER_PORT") |> result.try(int.parse)
+  let assert Ok(hca_client_id) = envoy.get("HCA_CLIENT_ID")
+  let assert Ok(hca_client_secret) = envoy.get("HCA_CLIENT_SECRET")
+  let assert Ok(hca_redirect_uri) = envoy.get("HCA_REDIRECT_URI")
 
   Config(
     secret_key_base:,
@@ -34,5 +41,8 @@ pub fn load() -> Config {
     db_name:,
     db_user:,
     db_password:,
+    hca_client_id:,
+    hca_client_secret:,
+    hca_redirect_uri:,
   )
 }

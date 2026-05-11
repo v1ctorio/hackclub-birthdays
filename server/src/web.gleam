@@ -33,3 +33,16 @@ pub fn db_execute(
     Error(_) -> wisp.internal_server_error()
   }
 }
+
+pub fn auth_mw(
+  req: wisp.Request,
+  handle_request: fn(wisp.Request) -> wisp.Response,
+) -> wisp.Response {
+  // TODO extract the auth header, check if it's valid and only then redirect to the auth endpoint
+  let authorized = False
+  case authorized {
+    True -> handle_request(req)
+    False -> wisp.redirect("/oauth/login")
+  }
+  handle_request(req)
+}

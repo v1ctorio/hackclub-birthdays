@@ -1,8 +1,6 @@
 import context.{type Context}
 import gleam/bool
 import gleam/json
-import gleam/list
-import gleam/result
 import member
 import member/repository
 import web
@@ -50,7 +48,6 @@ pub fn get_member(_req: Request, ctx: Context, hca_id: String) -> Response {
   |> wisp.json_body(wisp.ok(), _)
 }
 
-// _id should 
 pub fn update_member(req: Request, ctx: Context, id: String) -> Response {
   let db = context.db_conn(ctx)
   use json <- wisp.require_json(req)

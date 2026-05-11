@@ -18,7 +18,7 @@ pub fn main() -> Nil {
     router.handle_request(_, context)
     |> wisp_mist.handler(config.secret_key_base)
     |> mist.new
-    |> mist.port(8000)
+    |> mist.port(config.server_port)
     |> mist.start
 
   process.sleep_forever()

@@ -1,4 +1,5 @@
 import config.{type Config}
+import gleam/dict.{type Dict}
 import gleam/erlang/process
 import pog
 
@@ -6,7 +7,7 @@ pub type DbPoolName =
   process.Name(pog.Message)
 
 pub type Context {
-  Context(config: Config, db_pool_name: DbPoolName)
+  Context(config: Config, db_pool_name: DbPoolName, cache: Dict(String, String))
 }
 
 pub fn db_conn(ctx: Context) -> pog.Connection {

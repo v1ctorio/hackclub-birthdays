@@ -16,6 +16,7 @@ pub type Config {
     hca_client_id: String,
     hca_client_secret: String,
     hca_redirect_uri: String,
+    hca_base_url: String,
   )
 }
 
@@ -31,6 +32,7 @@ pub fn load() -> Config {
   let assert Ok(hca_client_id) = envoy.get("HCA_CLIENT_ID")
   let assert Ok(hca_client_secret) = envoy.get("HCA_CLIENT_SECRET")
   let assert Ok(hca_redirect_uri) = envoy.get("HCA_REDIRECT_URI")
+  let assert Ok(hca_base_url) = envoy.get("HCA_BASE_URL")
 
   Config(
     secret_key_base:,
@@ -44,5 +46,6 @@ pub fn load() -> Config {
     hca_client_id:,
     hca_client_secret:,
     hca_redirect_uri:,
+    hca_base_url:,
   )
 }

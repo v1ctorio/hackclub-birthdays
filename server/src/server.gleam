@@ -1,6 +1,7 @@
 import config
 import context
 import database
+import gleam/dict
 import gleam/erlang/process
 import mist
 import router
@@ -12,7 +13,7 @@ pub fn main() -> Nil {
 
   let config = config.load()
   let db_pool_name = database.start(config)
-  let context = context.Context(config:, db_pool_name:)
+  let context = context.Context(config:, db_pool_name:, cache: dict.new())
 
   let assert Ok(_) =
     router.handle_request(_, context)

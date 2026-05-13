@@ -1,4 +1,6 @@
 import context
+import gjwt
+import gjwt/key as gjwt_key
 import gleam/bool
 import gleam/dynamic/decode
 import gleam/http
@@ -7,36 +9,8 @@ import gleam/http/response
 import gleam/httpc
 import gleam/json
 import gleam/result
-
-pub type TokenRes {
-  TokenRes(
-    access_token: String,
-    expires_in: Int,
-    refresh_token: String,
-    token_type: String,
-    id_token: String,
-  )
-}
-
-pub fn token_res_from_json(
-  json_string: String,
-) -> Result(TokenRes, json.DecodeError) {
-  let tokens_decoder = {
-    use access_token <- decode.field("access_token", decode.string)
-    use token_type <- decode.field("token_type", decode.string)
-    use expires_in <- decode.field("expires_in", decode.int)
-    use refresh_token <- decode.field("refresh_token", decode.string)
-    use id_token <- decode.field("id_token", decode.string)
-    decode.success(TokenRes(
-      access_token:,
-      expires_in:,
-      refresh_token:,
-      token_type:,
-      id_token:,
-    ))
-  }
-  json.parse(json_string, using: tokens_decoder)
-}
+import oauth/types.{type TokenRes, token_res_from_json}
+import qol_gleam/qol_result
 
 pub fn code_token_exchange(
   code: String,
@@ -78,4 +52,16 @@ pub fn code_token_exchange(
   )
 
   Ok(token_res)
+}
+
+// TODO store in cache HCA keys
+pub fn validate_token(token: String, ctx: context.Context) -> Bool {
+  let assert Ok(base_req) =
+    request.to(ctx.config.hca_base_url <> "/oauth/discovery/keys")
+
+  let req = base_req |> request.set_method(http.Get)
+  use resp <- qol_result.guard(httpc.send(req), False)
+  use <- bool.guard(when: resp.status != 200, return: False)
+  use key <- qol_result.guard(types.key_from_json(resp.body), False)
+  echo gjwt.verify(token, gjwt_key.from_string(key.e, key.alg))
 }

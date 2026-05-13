@@ -33,7 +33,9 @@ pub fn oauth_callback(
     Error(_) -> wisp.bad_request("Invalid code")
     Ok(code) -> {
       echo code
-      echo oauth_requests.code_token_exchange(code, ctx)
+      let assert Ok(token) = oauth_requests.code_token_exchange(code, ctx)
+      let something = oauth_requests.validate_token(token.id_token, ctx)
+
       wisp.ok()
     }
   }

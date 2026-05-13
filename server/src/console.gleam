@@ -3,6 +3,7 @@ import context.{Context}
 import database
 import gleam/dynamic.{type Dynamic}
 import gleam/erlang/atom
+import gleam/dict
 import pog
 
 @external(erlang, "shell", "strings")
@@ -16,6 +17,6 @@ pub fn init() -> pog.Connection {
   let _ = ensure_all_started(atom.create("pgo"))
   let config = config.load()
   let db_pool_name = database.start(config)
-  let context = Context(config:, db_pool_name:)
+  let context = Context(config:, db_pool_name:, cache: dict.new())
   context.db_conn(context)
 }

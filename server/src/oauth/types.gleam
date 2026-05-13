@@ -1,3 +1,5 @@
+import gjwt/key as gjwt_key
+import gleam/bit_array
 import gleam/dynamic/decode
 import gleam/json
 import gleam/result
@@ -68,4 +70,10 @@ pub fn key_from_json(json_string: String) -> Result(Jwk, json.DecodeError) {
     [] -> Error(json.UnexpectedSequence("No keys found in discovery response"))
     [key, ..] -> Ok(key)
   }
+}
+
+pub fn key_to_gjwt_key(key: Jwk) -> gjwt_key.Key {
+  let n_bits = bit_array.from_string(key.n)
+  let e_bits = bit_array.from_string(key.e)
+  gjwt_key.Key(bit_array.from_string(key.n), key.alg, key.kty)
 }

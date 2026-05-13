@@ -1,6 +1,7 @@
 import context
 import gjwt
 import gjwt/key as gjwt_key
+import gleam/bit_array
 import gleam/bool
 import gleam/dynamic/decode
 import gleam/http
@@ -63,5 +64,6 @@ pub fn validate_token(token: String, ctx: context.Context) -> Bool {
   use resp <- qol_result.guard(httpc.send(req), False)
   use <- bool.guard(when: resp.status != 200, return: False)
   use key <- qol_result.guard(types.key_from_json(resp.body), False)
-  echo gjwt.verify(token, gjwt_key.from_string(key.e, key.alg))
+  echo key
+  echo gjwt.verify(token, types.key_to_gjwt_key(key))
 }

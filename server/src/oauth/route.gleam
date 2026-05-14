@@ -35,10 +35,9 @@ pub fn oauth_callback(
     Ok(code) -> {
       echo code
       let assert Ok(token) = oauth_requests.code_token_exchange(code, ctx)
-      use something <- qol_result.guard(
-        oauth_requests.decode_and_verify_token(token.id_token, ctx),
-        wisp.internal_server_error(),
-      )
+      let decoded =
+        echo oauth_requests.decode_and_verify_token(token.id_token, ctx)
+      use something <- qol_result.guard(decoded, wisp.content_too_large())
       echo something
 
       wisp.ok()

@@ -3,6 +3,7 @@ import gleam/bool
 import gleam/http
 import gleam/http/request
 import gleam/httpc
+import gleam/json
 import gleam/result
 import gleam/time/duration
 import oauth/types.{type TokenRes, token_res_from_json}
@@ -69,13 +70,13 @@ pub fn decode_and_verify_token(
     Error(HCAKeyFetchError)
   })
 
-  use ywt_ver_key <- qol_result.guard(
-    types.stringjwk_to_ywt_verify_key(resp.body),
-    Error(HCAKeyDecodeError),
+  use ywt_ver_key <- result.try(
+    types.stringjwk_to_ywt_verify_key(resp.body)
+    |> result.map_error(fn(e) { HCAKeyDecodeError(e) }),
   )
   let claims = [
     claim.expires_at(max_age: duration.hours(1), leeway: duration.minutes(5)),
-    claim.issuer("my-app", []),
+    claim.audience(ctx.config.hca_client_id, []),
   ]
 
   let decoder = types.get_hca_payloadd_decoder()
@@ -85,7 +86,7 @@ pub fn decode_and_verify_token(
 
 pub type TokenDecodeError {
   HCAKeyFetchError
-  HCAKeyDecodeError
+  HCAKeyDecodeError(json.DecodeError)
   // probably means invalid signature
   HCATokenDecodeError(ywt.ParseError)
 }

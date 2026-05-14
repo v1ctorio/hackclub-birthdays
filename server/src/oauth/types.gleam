@@ -1,7 +1,7 @@
-import gjwt/key as gjwt_key
 import gleam/bit_array
 import gleam/dynamic/decode
 import gleam/json
+import gleam/list
 import gleam/result
 import ywt/verify_key
 
@@ -73,17 +73,28 @@ pub fn key_from_json(json_string: String) -> Result(Jwk, json.DecodeError) {
   }
 }
 
-pub fn key_to_gjwt_key(key: Jwk) -> gjwt_key.Key {
-  let n_bits = bit_array.from_string(key.n)
-  let e_bits = bit_array.from_string(key.e)
-  gjwt_key.Key(bit_array.from_string(key.n), key.alg, key.kty)
+pub fn stringjwk_to_ywt_verify_key(
+  response: String,
+) -> Result(verify_key.VerifyKey, json.DecodeError) {
+  // this (converting back to json) is like extremely inefficient but i really don't know how else to do this right now
+  use jwk <- result.try(key_from_json(response))
+  // using it just in case my horrible code could get optmized
+  echo #("twying to parse ", jwk)
+  let jwk = jwk_to_json(jwk)
+  json.parse(jwk, verify_key.decoder())
 }
 
-pub fn stringjwk_to_ywt_verify_key(
-  jwk: String,
-) -> Result(verify_key.VerifyKey, json.DecodeError) {
-  use key <- result.try(json.parse(jwk, verify_key.decoder()))
-  Ok(key)
+// This is so silly and i hate it
+fn jwk_to_json(jwk: Jwk) -> String {
+  json.object([
+    #("kty", json.string(jwk.kty)),
+    #("n", json.string(jwk.n)),
+    #("e", json.string(jwk.e)),
+    #("kid", json.string(jwk.kid)),
+    #("use", json.string(jwk.use_)),
+    #("alg", json.string(jwk.alg)),
+  ])
+  |> json.to_string()
 }
 
 pub type HCAJWTPayload {

@@ -2,6 +2,7 @@ import context
 import gleam/list
 import gleam/uri
 import oauth/requests as oauth_requests
+import qol_gleam/qol_result
 import wisp
 
 pub fn oauth_login(_req: wisp.Request, ctx: context.Context) -> wisp.Response {
@@ -34,7 +35,11 @@ pub fn oauth_callback(
     Ok(code) -> {
       echo code
       let assert Ok(token) = oauth_requests.code_token_exchange(code, ctx)
-      let something = oauth_requests.validate_token(token.id_token, ctx)
+      use something <- qol_result.guard(
+        oauth_requests.decode_and_verify_token(token.id_token, ctx),
+        wisp.internal_server_error(),
+      )
+      echo something
 
       wisp.ok()
     }

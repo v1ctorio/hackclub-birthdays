@@ -3,6 +3,7 @@ import gleam/bit_array
 import gleam/dynamic/decode
 import gleam/json
 import gleam/result
+import ywt/verify_key
 
 pub type TokenRes {
   TokenRes(
@@ -76,4 +77,22 @@ pub fn key_to_gjwt_key(key: Jwk) -> gjwt_key.Key {
   let n_bits = bit_array.from_string(key.n)
   let e_bits = bit_array.from_string(key.e)
   gjwt_key.Key(bit_array.from_string(key.n), key.alg, key.kty)
+}
+
+pub fn stringjwk_to_ywt_verify_key(
+  jwk: String,
+) -> Result(verify_key.VerifyKey, json.DecodeError) {
+  use key <- result.try(json.parse(jwk, verify_key.decoder()))
+  Ok(key)
+}
+
+pub type HCAJWTPayload {
+  HCAJWTPayload(iss: String, sub: String, slack_id: String)
+}
+
+pub fn get_hca_payloadd_decoder() -> decode.Decoder(HCAJWTPayload) {
+  use iss <- decode.field("iss", decode.string)
+  use sub <- decode.field("sub", decode.string)
+  use slack_id <- decode.field("slack_id", decode.string)
+  decode.success(HCAJWTPayload(iss:, sub:, slack_id:))
 }

@@ -1,17 +1,14 @@
 import context
-import gjwt
-import gjwt/key as gjwt_key
-import gleam/bit_array
 import gleam/bool
-import gleam/dynamic/decode
 import gleam/http
 import gleam/http/request
-import gleam/http/response
 import gleam/httpc
-import gleam/json
 import gleam/result
+import gleam/time/duration
 import oauth/types.{type TokenRes, token_res_from_json}
 import qol_gleam/qol_result
+import ywt
+import ywt/claim
 
 pub fn code_token_exchange(
   code: String,
@@ -56,14 +53,39 @@ pub fn code_token_exchange(
 }
 
 // TODO store in cache HCA keys
-pub fn validate_token(token: String, ctx: context.Context) -> Bool {
+pub fn decode_and_verify_token(
+  token: String,
+  ctx: context.Context,
+) -> Result(types.HCAJWTPayload, TokenDecodeError) {
   let assert Ok(base_req) =
     request.to(ctx.config.hca_base_url <> "/oauth/discovery/keys")
+  let req =
+    base_req
+    |> request.set_method(http.Get)
+  use resp <- result.try(
+    httpc.send(req) |> result.map_error(fn(_) { HCAKeyFetchError }),
+  )
+  use <- bool.guard(when: resp.status != 200, return: {
+    Error(HCAKeyFetchError)
+  })
 
-  let req = base_req |> request.set_method(http.Get)
-  use resp <- qol_result.guard(httpc.send(req), False)
-  use <- bool.guard(when: resp.status != 200, return: False)
-  use key <- qol_result.guard(types.key_from_json(resp.body), False)
-  echo key
-  echo gjwt.verify(token, types.key_to_gjwt_key(key))
+  use ywt_ver_key <- qol_result.guard(
+    types.stringjwk_to_ywt_verify_key(resp.body),
+    Error(HCAKeyDecodeError),
+  )
+  let claims = [
+    claim.expires_at(max_age: duration.hours(1), leeway: duration.minutes(5)),
+    claim.issuer("my-app", []),
+  ]
+
+  let decoder = types.get_hca_payloadd_decoder()
+  ywt.decode(jwt: token, using: decoder, keys: [ywt_ver_key], claims:)
+  |> result.map_error(fn(e) { HCATokenDecodeError(e) })
+}
+
+pub type TokenDecodeError {
+  HCAKeyFetchError
+  HCAKeyDecodeError
+  // probably means invalid signature
+  HCATokenDecodeError(ywt.ParseError)
 }

@@ -13,15 +13,15 @@ pub fn oauth_login(_req: wisp.Request, ctx: context.Context) -> wisp.Response {
   let client_id = ctx.config.hca_client_id
 
   wisp.redirect(
-    echo hca_base_url
-      <> "/oauth/authorize?client_id="
-      <> client_id
-      <> "&redirect_uri="
-      <> redirect_uri
-      <> "&response_type="
-      <> response_type
-      <> "&scope="
-      <> scope,
+    hca_base_url
+    <> "/oauth/authorize?client_id="
+    <> client_id
+    <> "&redirect_uri="
+    <> redirect_uri
+    <> "&response_type="
+    <> response_type
+    <> "&scope="
+    <> scope,
   )
 }
 
@@ -39,6 +39,8 @@ pub fn oauth_callback(
         echo oauth_requests.decode_and_verify_token(token.id_token, ctx)
       use something <- qol_result.guard(decoded, wisp.content_too_large())
       echo something
+      // TODO store the user slack_id and sub in another jwt 
+      // store it in the cookies
 
       wisp.ok()
     }

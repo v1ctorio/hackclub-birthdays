@@ -40,7 +40,6 @@ pub fn code_token_exchange(
 
   use resp <- result.try(httpc.send(req) |> result.map_error(fn(_e) { "test" }))
 
-  echo #(resp, resp.body)
   use <- bool.guard(when: resp.status != 200, return: {
     Error("Non Ok response from oauth provider")
   })

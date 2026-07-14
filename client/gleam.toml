@@ -17,7 +17,22 @@ target = "javascript"
 gleam_stdlib = ">= 1.0.0 and < 2.0.0"
 shared = { path = "../shared" }
 lustre = ">= 5.7.0 and < 6.0.0"
+gleam_fetch = ">= 1.4.0 and < 2.0.0"
+gleam_http = ">= 4.3.0 and < 5.0.0"
+gleam_javascript = ">= 1.0.0 and < 2.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+gleam_time = ">= 1.8.0 and < 2.0.0"
 
 [dev_dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
 lustre_dev_tools = ">= 2.3.6 and < 3.0.0"
+
+[tools.lustre.dev]
+port = 1234
+proxy = [
+  { from = "/api", to = "http://localhost:3000/api" },
+  { from = "/oauth", to = "http://localhost:3000/oauth" },
+]
+
+[tools.lustre.html]
+title = "Hack Club Birthdays"

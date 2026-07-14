@@ -237,3 +237,52 @@ RETURNING
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
+
+/// A row you get from running the `create_member_if_not_exists` query
+/// defined in `./src/member/sql/create_member_if_not_exists.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateMemberIfNotExistsRow {
+  CreateMemberIfNotExistsRow(
+    hca_id: String,
+    slack_id: String,
+    birthdate: Option(Date),
+  )
+}
+
+/// Runs the `create_member_if_not_exists` query
+/// defined in `./src/member/sql/create_member_if_not_exists.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_member_if_not_exists(
+  db: pog.Connection,
+  arg_1: String,
+  arg_2: String,
+) -> Result(pog.Returned(CreateMemberIfNotExistsRow), pog.QueryError) {
+  let decoder = {
+    use hca_id <- decode.field(0, decode.string)
+    use slack_id <- decode.field(1, decode.string)
+    use birthdate <- decode.field(
+      2,
+      decode.optional(pog.calendar_date_decoder()),
+    )
+    decode.success(CreateMemberIfNotExistsRow(hca_id:, slack_id:, birthdate:))
+  }
+
+  "INSERT INTO members (hca_id, slack_id)
+VALUES ($1, $2)
+ON CONFLICT (hca_id) DO NOTHING
+RETURNING
+    hca_id,
+    slack_id,
+    birthdate"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}

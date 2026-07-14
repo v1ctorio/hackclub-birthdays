@@ -3,7 +3,6 @@ import gleam/dynamic/decode.{type Decoder}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
 import gleam/time/calendar
-import pog
 
 pub type Member {
   Member(hca_id: String, slack_id: String, birthdate: Option(calendar.Date))
@@ -30,7 +29,7 @@ pub fn member_decoder() -> Decoder(Member) {
   use slack_id <- decode.field("slack_id", decode.string)
   use birthdate <- decode.field(
     "birthdate",
-    decode.optional(pog.calendar_date_decoder()),
+    decode.optional(date.calendar_date_decoder()),
   )
   decode.success(Member(hca_id:, slack_id:, birthdate:))
 }
@@ -38,7 +37,7 @@ pub fn member_decoder() -> Decoder(Member) {
 pub fn member_input_decoder() -> Decoder(MemberInput) {
   use birthdate <- decode.field(
     "birthdate",
-    decode.optional(pog.calendar_date_decoder()),
+    decode.optional(date.calendar_date_decoder()),
   )
   decode.success(MemberInput(birthdate:))
 }

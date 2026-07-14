@@ -3,3 +3,39 @@
 /// because the openID foundation is annoying and 
 /// doesn't want me to store the identification tokens
 /// in the client (((((
+import gleam/dynamic/decode
+import gleam/json
+import gleam/result
+import gleam/time/timestamp
+import gwt
+
+pub const session_lifetime_seconds = 2_592_000
+
+pub type SessionClaims {
+  SessionClaims(hca_id: String, slack_id: String)
+}
+
+pub fn sign_session(claims: SessionClaims, secret: String) -> String {
+  let #(now, _) =
+    timestamp.system_time()
+    |> timestamp.to_unix_seconds_and_nanoseconds
+
+  gwt.new()
+  |> gwt.set_subject(claims.hca_id)
+  |> gwt.set_payload_claim(set: "slack_id", to: json.string(claims.slack_id))
+  |> gwt.set_expiration(now + session_lifetime_seconds)
+  |> gwt.to_signed_string(gwt.HS256, secret)
+}
+
+pub fn verify_session(
+  token: String,
+  secret: String,
+) -> Result(SessionClaims, gwt.JwtDecodeError) {
+  use jwt <- result.try(gwt.from_signed_string(token, secret))
+  use hca_id <- result.try(gwt.get_subject(from: jwt))
+  use slack_id <- result.try(
+    gwt.get_payload_claim(from: jwt, claim: "slack_id", decoder: decode.string)
+    |> result.map_error(fn(_) { gwt.MissingClaim }),
+  )
+  Ok(SessionClaims(hca_id:, slack_id:))
+}

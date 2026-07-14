@@ -90,3 +90,30 @@ pub fn delete_member(
 
   Ok(Nil)
 }
+
+pub fn create_member_if_not_exists(
+  db_conn: pog.Connection,
+  hca_id: String,
+  slack_id: String,
+) -> Result(Member, DatabaseError) {
+  let query_result =
+    sql.create_member_if_not_exists(db_conn, hca_id, slack_id)
+    |> result.map_error(QueryError)
+  use pog.Returned(count, rows) <- result.try(query_result)
+  // ON CONFLICT DO NOTHING returns 0 rows if member already exists
+  case count {
+    0 -> get_member(db_conn, hca_id)
+    _ -> {
+      let row =
+        rows
+        |> list.first
+        |> result.replace_error(UnexpectedNoRows)
+      use row <- result.map(row)
+      Member(
+        hca_id: row.hca_id,
+        slack_id: row.slack_id,
+        birthdate: row.birthdate,
+      )
+    }
+  }
+}

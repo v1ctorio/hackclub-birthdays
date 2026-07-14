@@ -9,9 +9,17 @@ pub fn handle_request(req: Request, ctx: context.Context) -> Response {
   use req <- web.middleware(req)
 
   case wisp.path_segments(req) {
+    ["api", "me"] -> handle_me(req, ctx)
     ["api", "members", ..rest] -> handle_tasks(rest, req, ctx)
     ["oauth", ..rest] -> handle_oauth(rest, req, ctx)
     _ -> wisp.not_found()
+  }
+}
+
+fn handle_me(req: Request, ctx: context.Context) -> Response {
+  case req.method {
+    Get -> member_routes.get_me(req, ctx)
+    _ -> wisp.method_not_allowed([Get])
   }
 }
 

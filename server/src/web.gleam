@@ -1,3 +1,5 @@
+import auth/auth
+import context.{type Context}
 import error.{type DatabaseError, RecordNotFound}
 import gleam/dynamic/decode.{type Decoder}
 import wisp.{type Request, type Response}
@@ -36,13 +38,16 @@ pub fn db_execute(
 
 pub fn auth_mw(
   req: wisp.Request,
-  handle_request: fn(wisp.Request) -> wisp.Response,
+  ctx: Context,
+  handle_request: fn(wisp.Request, auth.SessionClaims) -> wisp.Response,
 ) -> wisp.Response {
-  // TODO extract the auth header, check if it's valid and only then redirect to the auth endpoint
-  let authorized = False
-  case authorized {
-    True -> handle_request(req)
-    False -> wisp.redirect("/oauth/login")
+  case wisp.get_cookie(req, "session", wisp.Signed) {
+    Ok(token) -> {
+      case auth.verify_session(token, ctx.config.secret_key_base) {
+        Ok(claims) -> handle_request(req, claims)
+        Error(_) -> wisp.response(401)
+      }
+    }
+    Error(_) -> wisp.response(401)
   }
-  handle_request(req)
 }

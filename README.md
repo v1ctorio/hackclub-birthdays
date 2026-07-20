@@ -24,7 +24,7 @@ The app will be ready in `localhost:1234`
 - [x] log in with HCA
     - [x] extract the slack_id and sub from HCA oidc oauth
     - [x] store them in jwt
-- [ ] authenticate the endpoints to manipulate birthdays
+- [x] authenticate the endpoints to manipulate birthdays
 - [x] Set and edit birthdays
 - [ ] Allow null inputs to delete birthdays/personal channels
 - [ ] allow non-slack oauth

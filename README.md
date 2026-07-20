@@ -7,14 +7,15 @@ Birthdays website built using the gleam functional programming language. The mos
 ## Development
 
 1. fill the `.env` (based on the `.env.example`)
-2. install the packages
+
 - Database 
     - `podman compose -f compose-dev.yml up` to start it, or start a local postgres based on the config in there
 - start the backend
-    - `cd server`
+    - `cd server`; `gleam check`
     - `set -a && source ../.env && set +a` to load the env vars
+    - `gleam run`
 - start the frontend (separate component)
-    - `cd frontend`
+    - `cd frontend`; `gleam check`
     - `gleam run -m lustre/dev start`
 
 The app will be ready in `localhost:1234`
